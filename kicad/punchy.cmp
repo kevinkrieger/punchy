@@ -1,0 +1,164 @@
+Cmp-Mod V01 Created by CvPcb (2013-05-18 BZR 4017)-stable date = Thu 17 Jul 2014 20:16:28 CST
+
+BeginCmp
+TimeStamp = /53C5792D;
+Reference = BT1;
+ValeurCmp = BATTERY;
+IdModule  = HEADER-2x0.1inch;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56FB0;
+Reference = C1;
+ValeurCmp = 1u;
+IdModule  = c_0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56FBC;
+Reference = C2;
+ValeurCmp = 1u;
+IdModule  = c_0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56F98;
+Reference = C3;
+ValeurCmp = 10n;
+IdModule  = c_0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56E22;
+Reference = C4;
+ValeurCmp = 0.1u;
+IdModule  = c_0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56F9E;
+Reference = C5;
+ValeurCmp = 0.1u;
+IdModule  = c_0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56FA4;
+Reference = C6;
+ValeurCmp = 2.2n;
+IdModule  = c_0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C6292B;
+Reference = J1;
+ValeurCmp = PROG;
+IdModule  = 851-87-20-006-001101;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56F4A;
+Reference = JP1;
+ValeurCmp = AD0_SEL;
+IdModule  = SOLDER_JUMPER_3;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56F3B;
+Reference = JP2;
+ValeurCmp = CLKIN_SEL;
+IdModule  = SOLDER_JUMPER;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56F2C;
+Reference = JP3;
+ValeurCmp = FSYNC_SEL;
+IdModule  = SOLDER_JUMPER;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56C67;
+Reference = P1;
+ValeurCmp = BATT;
+IdModule  = S2B-PH-SM4-TB;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C882B1;
+Reference = P2;
+ValeurCmp = DBG;
+IdModule  = SIL-4;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C61841;
+Reference = Q1;
+ValeurCmp = DMG1012T-7;
+IdModule  = SOT523;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C61850;
+Reference = R1;
+ValeurCmp = 10k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C629FD;
+Reference = R2;
+ValeurCmp = 47K;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56E31;
+Reference = R3;
+ValeurCmp = RPU;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C62B44;
+Reference = R4;
+ValeurCmp = 0R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56FAA;
+Reference = R5;
+ValeurCmp = RPU;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C61832;
+Reference = U1;
+ValeurCmp = HC05;
+IdModule  = HC05;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56E13;
+Reference = U2;
+ValeurCmp = AP7333;
+IdModule  = SOT23;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C60A77;
+Reference = U3;
+ValeurCmp = MSP430G2X53;
+IdModule  = tssop-20;
+EndCmp
+
+BeginCmp
+TimeStamp = /53C56C29;
+Reference = U4;
+ValeurCmp = MPU6050;
+IdModule  = qfn24_hand_solderable;
+EndCmp
+
+EndListe
