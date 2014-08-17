@@ -1,2 +1,8 @@
 datasheets
-
+*.save
+punchy/obj
+punchy/bin
+*.o
+punchy/core
+punchy/punchy.layout
+punchy/punchy.depend
