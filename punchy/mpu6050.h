@@ -377,14 +377,13 @@ uint8_t mpu6050_status;
 //uint8_t mpu6050_write_7bit_address = 0x68;
 //uint8_t mpu6050_read_7bit_address = 0x69;
 
-uint16_t ax;
-uint16_t ay;
-uint16_t az;
-uint16_t gx;
-uint16_t gy;
-uint16_t gz;
-
-
+int16_t ax;
+int16_t ay;
+int16_t az;
+int16_t gx;
+int16_t gy;
+int16_t gz;
+int16_t temperature;
 /* Routines */
 
 void mpu6050_init();
@@ -402,6 +401,12 @@ void mpu6050_accel();
 void mpu6050_gyro();
 
 void mpu6050_temp();
+
+/* Trigger accel self test, config accel full scale range and configure digital high pass filter
+reg 1c bit 3 and 4: AFS-SEL -> 0 +/-2 g, 1 is +/- 4g, 2 is +/-8g, 3 is +/- 16g */
+void mpu6050_configAccel(uint8_t accel_config);
+
+
 
 
 #endif /* _MPU6050_H_ */

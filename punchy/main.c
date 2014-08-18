@@ -8,6 +8,7 @@
 #include "hc05.h"
 #include "mpu6050.h"
 
+
 /* Defines */
 #define FOSC        1000000 // Oscillator speed in Hz
 
@@ -73,9 +74,8 @@ int main(void) {
 
     /* Initialize mpu6050 */
 	mpu6050_init();
-    hc05_transmit("mpu6050 initialized\r\n",17);
+    hc05_transmit("mpu6050 initialized\r\n",21);
 	_BIS_SR(GIE);
-
 	while(1) {
 
         switch(data_received) {
