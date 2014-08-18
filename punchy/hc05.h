@@ -5,11 +5,16 @@
 #include <stdint.h>
 #include <msp430g2553.h>
 
-
-#define BT_ON 		BIT3
-#define BAUD		9600
-#define RXD 		BIT1	// Which pin on port 2 is the RX pin?
-#define TXD 		BIT2	// Which pin on port 2 is the TX pin?
+#define BT_KEY          BIT0    // Port 1
+#define BT_RED          BIT3    // Port 1
+#define BT_BLUE         BIT4    // Port 1
+#define BT_STATUS       BIT5    // Port 1
+#define BT_DISCONNECT   BIT0    // Port 2
+#define BT_RESET        BIT4    // Port 2
+#define BT_ON 		    BIT3    // Port 2
+#define BAUD		    9600
+#define BT_RX 		    BIT1	// Which pin on port 2 is the RX pin?
+#define BT_TX 		    BIT2	// Which pin on port 2 is the TX pin?
 
 uint8_t TXData;
 uint8_t hc05_buffer[32];

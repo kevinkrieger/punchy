@@ -14,8 +14,8 @@ void hc05_transmit(char *data, uint16_t transmit_length) {
 void hc05_init() {
 	P2DIR = BT_ON; /* Port 2 bluetooth on pin is output and on */
 	P2OUT = BT_ON;
-    P1SEL = RXD + TXD;
-	P1SEL2 = RXD + TXD; 	// bit 1 = rxd bit 2 = txd
+    P1SEL = BT_RX + BT_TX;
+	P1SEL2 = BT_RX + BT_TX; 	// bit 1 = rxd bit 2 = txd
 	UCA0CTL1 |= UCSSEL_2; 	// use smclk
 	UCA0BR0 = 104; 			// baud 9600 with 1MHz clock
 	UCA0BR1 = 0;
