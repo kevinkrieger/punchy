@@ -1,11 +1,18 @@
 #include "i2c.h"
-#include <legacymsp430.h>
-#include <msp430g2553.h>
+
 /* I2C routines */
 
 void i2c_init() {
   dint();
-  UCB0CTL1 |= UCSWRST; //Keep in reset until configured
+  P1DIR |= SDA + SCL;
+  /* Toggle SCL line for a bit to 'reset' the line */
+  int i;
+  for(i = 0; i < 500; i++) {
+      P1OUT ^= SCL;
+  }
+    P1SEL |= SDA + SCL;
+    P1SEL2 |= SDA + SCL;
+    UCB0CTL1 |= UCSWRST; //Keep in reset until configured
   UCB0CTL0 = UCMODE0 + UCMODE1 + UCMST + UCSYNC; // Master mode, I2C mode, synchronous mode
   //7 bit addressing
   UCB0CTL1 = UCSWRST + UCSSEL_2;
@@ -25,26 +32,60 @@ void i2c_init() {
   eint();
 }
 
-void i2c_start() {
+void i2c_transmit(void) { // txifg will go right away, so we need to disable interrupts until STT is done!
+//__dint();
+tx_to_rc = 0;
+	while(UCB0CTL1 & UCTXSTP);
+	UCB0CTL1 |= UCTR + UCTXSTT;
+	while(UCB0CTL1 & UCTXSTT);
 
+
+//__eint();
+	__bis_SR_register(LPM0_bits + GIE);
+   // __bis_SR_register(GIE);
+	//UCB0CTL1 |= UCTR + UCTXSTT;
 }
 
-void i2c_stop() {
-    UCB0CTL1 |= UCTXSTP;
-    while(UCB0CTL1 & UCTXSTP);
+void i2c_transmit_to_receive() {
+//__dint();
+    tx_to_rc = 1;
+	while(UCB0CTL1 & UCTXSTP);
+	UCB0CTL1 |= UCTR + UCTXSTT;
+
+//__eint();
+	__bis_SR_register(LPM0_bits + GIE);
 }
 
-void i2c_write(uint8_t byte) {
-
+void i2c_receive(void) {
+	//mpu6050_buffer_pointer=0;
+	i2c_rx_buffer_pointer = 0;
+	while(UCB0CTL1 & UCTXSTP);
+	UCB0CTL1 &= ~UCTR;
+	UCB0CTL1 |= UCTXSTT;
+	while(UCB0CTL1 & UCTXSTT);
+	UCB0CTL1 |= UCTXSTP;
+	__bis_SR_register(LPM0_bits + GIE);
 }
 
-
-void i2c_tx_init(){
-
-}
-
-
-void i2c_rx_init() {
-
+void i2c_multireceive(uint8_t receive_amount) {
+	// Last one needs to have STP bit set in middle of reception
+	//mpu6050_buffer_pointer=0;
+	int i;
+	i2c_rx_buffer_pointer = 0;
+	while(UCB0CTL1 & UCTXSTP);
+	UCB0CTL1 &= ~UCTR;
+	UCB0CTL1 |= UCTXSTT;
+	for( i = 0; i<receive_amount - 1; i++) {
+		__bis_SR_register(LPM0_bits + GIE);
+		//		IFG2 &= ~UCB0TXIFG; 		// clear txifg
+		// RX interrupt
+		// will fire when we have received a byte
+	}
+//	while(UCB0CTL1 &UCTXSTP);
+//	UCB0CTL1 &= ~UCTR;
+//	UCB0CTL1 |= UCTXSTT;
+	//while(UCB0CTL1 & UCTXSTT);
+	UCB0CTL1 |= UCTXSTP;
+	__bis_SR_register(LPM0_bits + GIE);
 }
 
