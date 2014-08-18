@@ -38,6 +38,7 @@ uint16_t gy;
 uint16_t gz;
 uint8_t TXByteCounter = 1;
 uint8_t TXByte =0x75;
+uint8_t TXData = 0;
 
 uint16_t counterSize;
 uint8_t tx_to_rc;
@@ -211,43 +212,95 @@ void initClocks(void) {
 	BCSCTL3 |= LFXT1S1;*/
 }
 
-/*
+void mpu6050_getAddress() {
+    mpu6050_tx_buffer[0] = 0x75;
+	TXByteCounter = 1;
+	//i2c_transmit();
+	i2c_transmit_to_receive();
+	i2c_receive();
+	TXData = mpu6050_buffer[0];
+	transmit_uart(TXData,1);
+}
+
+void mpu6050_wakeup() {
+
+	mpu6050_tx_buffer[1] = 0x6B;
+	mpu6050_tx_buffer[0] = 0x00;
+	TXByteCounter =2;
+	i2c_transmit();
+	sendAck();
+	//TXData = mpu6050_buffer[0];
+	//transmit_uart(TXData,1);
+}
+void mpu6050_sleep() {
+
+	mpu6050_tx_buffer[1] = 0x6B;
+	mpu6050_tx_buffer[0] = 0x40;
+	TXByteCounter =2;
+	i2c_transmit();
+	sendAck();
+	//TXData = mpu6050_buffer[0];
+	//transmit_uart(TXData,1);
+}
+
+void mpu6050_reset() {
+
+	mpu6050_tx_buffer[1] = 0x6B;
+	mpu6050_tx_buffer[0] = 0x80;
+	TXByteCounter =2;
+	i2c_transmit();
+	sendAck();
+	//TXData = mpu6050_buffer[0];
+	//transmit_uart(TXData,1);
+}
 void sendAccel() {
-	i2c_send_sequence(mpu6050_read_accel,10,mpu6050_buffer,LPM1_bits);
-	_BIS_SR(LPM1_bits + GIE);
-	while(!i2c_done());
-	for(int i = 0; i < 6; i++) {
+	//i2c_send_sequence(mpu6050_read_accel,10,mpu6050_buffer,LPM1_bits);
+	//_BIS_SR(LPM1_bits + GIE);
+	//while(!i2c_done());
+    mpu6050_tx_buffer[0] = 0x3B;
+	TXByteCounter = 1;
+	i2c_transmit_to_receive();
+	i2c_multireceive(6);
+	for(i = 0; i < 6; i++) {
 		TXData = mpu6050_buffer[i];
-		TX_Byte();
+		transmit_uart(TXData,1);
 	}
 }
 
 void sendGyro() {
-	i2c_send_sequence(mpu6050_read_gyro,10,mpu6050_buffer,LPM1_bits);
-	_BIS_SR(LPM1_bits + GIE);
-	while(!i2c_done());
-	for(int i = 0; i < 6; i++) {
+	//i2c_send_sequence(mpu6050_read_gyro,10,mpu6050_buffer,LPM1_bits);
+	//_BIS_SR(LPM1_bits + GIE);
+	//while(!i2c_done());
+	mpu6050_tx_buffer[0] = 0x43;
+	TXByteCounter = 1;
+	i2c_transmit_to_receive();
+	i2c_multireceive(6);
+	for(i = 0; i < 6; i++) {
 		TXData = mpu6050_buffer[i];
-		TX_Byte();
+		transmit_uart(TXData,1);
 	}
 }
 
 
 void sendTemp() {
-	i2c_send_sequence(mpu6050_read_temp,7,mpu6050_buffer,LPM1_bits);
-	_BIS_SR(LPM1_bits + GIE);
-	while(!i2c_done());
-	for(int i = 0; i < 2; i++) {
+	//i2c_send_sequence(mpu6050_read_temp,7,mpu6050_buffer,LPM1_bits);
+	//_BIS_SR(LPM1_bits + GIE);
+	//while(!i2c_done());
+	mpu6050_tx_buffer[0] = 0x41;
+	TXByteCounter = 1;
+	i2c_transmit_to_receive();
+	i2c_multireceive(2);
+	for(i = 0; i < 2; i++) {
 		TXData = mpu6050_buffer[i];
-		TX_Byte();
+		transmit_uart(TXData,1);
 	}
 }
 
 void sendAck() {
 	TXData = 'A';
-	TX_Byte();
+	transmit_uart(TXData,1);
 }
-*/
+
 int main(void) {
 
     /* Configure Watch dog timer as an interval timer. WDTIFG is
@@ -367,9 +420,11 @@ int main(void) {
 	TXByteCounter =2;
 	i2c_transmit();
 
+ //   i2c_receive();
 //	TXByteCounter = 1;
 //	i2c_transmit();
 
+// This doesn't work but the receive 6 works.
 	mpu6050_tx_buffer[0] = 0x3B;
 	TXByteCounter = 1;
 	i2c_transmit_to_receive();
@@ -390,11 +445,39 @@ int main(void) {
 
 	while(1) {
 
-transmit_uart("D",1);
+        //transmit_uart("D",1);
 		//transmit_uart(hello_message,strlen(hello_message));
 
 
+        switch(data_received) {
+			case 'T':
+				sendTemp();
+				break;
+			case 'A':
+				sendAccel();
+				break;
+			case 'G':
+				sendGyro();
+				break;
+            case 'M':
+				mpu6050_getAddress();
+				break;
+			case 'W':
+				mpu6050_wakeup();
+				break;
+			case 'S':
+				mpu6050_sleep();
+				break;
+			case 'R':
+				mpu6050_reset();
+				break;
 
+
+			default:
+				sendAck();
+				break;
+		}
+		  __bis_SR_register(LPM1_bits + GIE);
 		//while(UCB0CTL1 & UCTXSTT);
 		//while(!IFG2 & UCB0TXIFG);
 		//UCB0TXBUF = 0x75; // address query
@@ -405,7 +488,7 @@ transmit_uart("D",1);
 
 		//UCB0CTL1 |= UCTXSTP;
 		//__bis_SR_register(LPM0_bits + GIE);
-	//	__bis_SR_register(LPM0_bits + GIE);
+
 	}
 
 }
@@ -415,10 +498,11 @@ interrupt (USCIAB0RX_VECTOR) receive_uart_I2C_state_isr(void) {
 	// UART receive
 	if(IFG2 & UCA0RXIFG) {
 		data_received = UCA0RXBUF;
-		transmit_uart("Received: ", 10);
+		//transmit_uart("Received: ", 10);
 		transmit_uart(&data_received, 1);
-		transmit_uart("\r\n",2);
-		IFG2 &= ~UCA0RXIFG;
+		//transmit_uart("\r\n",2);
+		//IFG2 &= ~UCA0RXIFG;
+		__bic_SR_register_on_exit(LPM1_bits);
 	} else if(UCB0STAT & UCNACKIFG) {
 		//Need to send stop
 		UCB0CTL1 |= UCTXSTP;
@@ -478,7 +562,7 @@ interrupt (USCIAB0TX_VECTOR) transmit_uart_I2C_data_isr(void) {
 			UCB0CTL1 |= UCTXSTP;
 			IFG2 &= ~UCB0TXIFG;
 			__bic_SR_register_on_exit(LPM0_bits);
-		} else {
+		} else {// don't stop if we are receiving next
 			if(tx_to_rc) {
 				IFG2 &= ~UCB0TXIFG;
 				__bic_SR_register_on_exit(LPM0_bits);
@@ -516,6 +600,7 @@ void i2c_transmit_to_receive() {
 }
 
 void i2c_receive(void) {
+	mpu6050_buffer_pointer=0;
 	while(UCB0CTL1 & UCTXSTP);
 	UCB0CTL1 &= ~UCTR;
 	UCB0CTL1 |= UCTXSTT;
@@ -526,6 +611,7 @@ void i2c_receive(void) {
 
 void i2c_multireceive(uint8_t receive_amount) {
 	// Last one needs to have STP bit set in middle of reception
+	mpu6050_buffer_pointer=0;
 	while(UCB0CTL1 & UCTXSTP);
 	UCB0CTL1 &= ~UCTR;
 	UCB0CTL1 |= UCTXSTT;
