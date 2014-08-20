@@ -7,7 +7,7 @@
 #include "string.h"
 #include "hc05.h"
 #include "mpu6050.h"
-
+#include "stdio.h"
 
 /* Defines */
 #define FOSC        1000000 // Oscillator speed in Hz
@@ -21,8 +21,12 @@ uint8_t TXByteCounter = 1;
 uint8_t TXByte = 0x75;
 uint8_t mpu6050_interrupt;
 uint8_t i = 0;
-
-
+uint16_t fifoCount = 0;
+//uint8_t fifoBuffer[64];
+uint8_t fifoBuffer[16];
+uint16_t packetSize;
+//uint8_t teapotPacket[14] = {'$',0x02,0,0,0,0,0,0,0,0,0x00,0x00,'\r','\n'};
+uint8_t mpuIntStatus;
 /* Routines */
 
 
@@ -138,14 +142,50 @@ int main(void) {
             }
 		}
 		if(mpu6050_interrupt) {
-            hc05_transmit("I\r\n",3);
-			mpu6050_interrupt = 0;
+ /*           fifoCount = mpu6050_getFIFOCount();
+            sprintf(tempbuf,"F: %X\r\n",fifoCount);
+            hc05_transmit(tempbuf,strlen(tempbuf));
+            mpuIntStatus = mpu6050_getIntStatus();
+            if(fifoCount > 1024 || mpuIntStatus & 0x10) {
+                mpu6050_resetFIFO();
+                hc05_transmit("FO\r\n",4);
+            } else if(mpuIntStatus & 0x02) {
+                while(fifoCount < packetSize) fifoCount = mpu6050_getFIFOCount();
 
+                mpu6050_getFIFOBytes(fifoBuffer,packetSize);
+                fifoCount -= packetSize;
+                                // display quaternion values in InvenSense Teapot demo format:
+                teapotPacket[2] = fifoBuffer[0];
+                teapotPacket[3] = fifoBuffer[1];
+                teapotPacket[4] = fifoBuffer[4];
+                teapotPacket[5] = fifoBuffer[5];
+                teapotPacket[6] = fifoBuffer[8];
+                teapotPacket[7] = fifoBuffer[9];
+                teapotPacket[8] = fifoBuffer[12];
+                teapotPacket[9] = fifoBuffer[13];
+                //Serial.write(teapotPacket, 14);
+                hc05_transmit(teapotPacket,14);
+                teapotPacket[11]++; // packetCount, loops at 0xFF on purpose
+            }
+   */
+            fifoCount = mpu6050_getFIFOCount();
+            sprintf(tempbuf,"FC: %X\r\n",fifoCount);
+            hc05_transmit(tempbuf,strlen(tempbuf));
+            if(fifoCount > 16) {
+                fifoCount =16;
+            }
+            mpu6050_getFIFOBytes(mpu6050_buffer,fifoCount);
+           /* This seems to keep the fifo operating. I probably need to read the fifo faster so it doesn't 'die' on me */
+            mpu6050_resetFIFO();
+            for(int i = 0; i<fifoCount;i++) {
+                sprintf(tempbuf,"%X ",mpu6050_buffer[i]);
+                hc05_transmit(tempbuf,3);
+            }
+            mpu6050_interrupt = 0;
 		}
 
 		  __bis_SR_register(LPM1_bits + GIE);
 	}
-
 }
 
 interrupt (USCIAB0RX_VECTOR) receive_uart_I2C_state_isr(void) {
