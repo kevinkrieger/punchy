@@ -6,6 +6,8 @@
 #include "stdlib.h"
 #include <legacymsp430.h>
 
+// uncomment to use all the print statements.
+//#define MPU6050_DEBUG
 
 /* ================================================================================================ *
  | Default MotionApps v2.0 42-byte FIFO packet structure:                                           |
@@ -212,7 +214,7 @@ const uint8_t dmpUpdates[MPU6050_DMP_UPDATES_SIZE] = {
     0x00,   0x60,   0x04,   0x00, 0x40, 0x00, 0x00
 };
 uint8_t j;
-char tempbuf[32];
+extern char tempbuf[32];
 
 /* Default values for all registers is 0 except for 107 (0x40) and 117 (0x68)
 These are the power configuraition and i2c address registers
@@ -378,7 +380,9 @@ void mpu6050_readMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, uin
 
 // first call: ...0,0,
 bool mpu6050_writeMemoryBlock(const uint8_t data[], uint16_t dataSize, uint8_t bank, uint8_t address, bool verify, bool useProgMem) {
+ #ifdef MPU6050_DEBUG
     hc05_transmit("writeMemoryBlock\r\n",18);
+ #endif // MPU6050_DEBUG
     mpu6050_setMemoryBank(bank,false,false);
     mpu6050_setMemoryStartAddress(address);
     uint8_t chunkSize;
@@ -507,8 +511,10 @@ bool mpu6050_writeDMPConfigurationSet(const uint8_t *data, uint16_t dataSize, bo
             Serial.print(offset);
             Serial.print(", length=");
             Serial.println(length);*/
+ #ifdef MPU6050_DEBUG
             sprintf(tempbuf,"bank: %x, offset: %x, length: %x\r\n", bank,offset,length);
              hc05_transmit(tempbuf,strlen(tempbuf));
+             #endif // MPU6050_DEBUG
             if (useProgMem) {
                 if (sizeof(progBuffer) < length) {
                     free(progBuffer);
@@ -534,8 +540,10 @@ bool mpu6050_writeDMPConfigurationSet(const uint8_t *data, uint16_t dataSize, bo
             /*Serial.print("Special command code ");
             Serial.print(special, HEX);
             Serial.println(" found...");*/
+      #ifdef MPU6050_DEBUG
             sprintf(tempbuf,"special: %x found\r\n", special);
              hc05_transmit(tempbuf,strlen(tempbuf));
+      #endif // MPU6050_DEBUG
             if (special == 0x01) {
                 // enable DMP-related interrupts
 
@@ -785,8 +793,10 @@ uint8_t mpu6050_getIntStatus() {
 }
 void mpu6050_dmpinit(){
     // reset device
+ #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"\n\nResetting MPU6050...\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+ #endif // MPU6050_DEBUG
     mpu6050_reset();
 
     //delay(30); // wait after reset
@@ -801,32 +811,47 @@ void mpu6050_dmpinit(){
     setWakeCycleEnabled(true);*/
 
     // disable sleep mode
+#ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Disabling sleep mode...\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+#endif // MPU6050_DEBUG
     //setSleepEnabled(false);
     mpu6050_wakeup();
 
     // get MPU hardware revision
+ #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Selecting user bank 16..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+    #endif // MPU6050_DEBUG
     mpu6050_setMemoryBank(0x10, true, true);
+ #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Selecting memory byte 6..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+    #endif // MPU6050_DEBUG
     mpu6050_setMemoryStartAddress(0x06);
+ #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Checking hardware revision..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+    #endif // MPU6050_DEBUG
     uint8_t hwRevision = mpu6050_readMemoryByte();
+ #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Revision @ user[16][6] = %X\r\n",hwRevision);
     hc05_transmit(tempbuf,strlen(tempbuf));
+ #endif // MPU6050_DEBUG
   //  sprintf(hwRevision, HEX);
+ #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Resetting memory bank selection to 0..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+ #endif // MPU6050_DEBUG
     mpu6050_setMemoryBank(0, false, false);
 
     // check OTP bank valid
+#ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Reading OTP bank valid flag..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+#endif // MPU6050_DEBUG
     uint8_t otpValid = mpu6050_getOTPBankValid();
+#ifdef MPU6050_DEBUG
     if(otpValid) {
         sprintf(tempbuf,"OTP bank is valid\r\n");
     }
@@ -838,9 +863,11 @@ void mpu6050_dmpinit(){
     // get X/Y/Z gyro offsets
     sprintf(tempbuf,"Reading gyro offset values..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+#endif // MPU6050_DEBUG
     int8_t xgOffset = mpu6050_getXGyroOffset();
     int8_t ygOffset = mpu6050_getYGyroOffset();
     int8_t zgOffset = mpu6050_getZGyroOffset();
+#ifdef MPU6050_DEBUG
     sprintf(tempbuf,"X gyro offset = %d\r\n",xgOffset);
     hc05_transmit(tempbuf,strlen(tempbuf));
     sprintf(tempbuf,"Y gyro offset = %d\r\n",ygOffset);
@@ -851,215 +878,303 @@ void mpu6050_dmpinit(){
     // setup weird slave stuff (?)
     sprintf(tempbuf,"Setting slave 0 address to 0x7F..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+#endif // MPU6050_DEBUG
     mpu6050_setSlaveAddress(0, 0x7F);
+#ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Disabling I2C Master mode..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+#endif // MPU6050_DEBUG
     mpu6050_setI2CMasterModeEnabled(false);
+#ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Setting slave 0 address to 0x68 (self)..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+#endif // MPU6050_DEBUG
     mpu6050_setSlaveAddress(0, 0x68);
+#ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Resetting I2C Master control..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
+#endif // MPU6050_DEBUG
     mpu6050_resetI2CMaster();
     //delay(20);
     for(i = 0; i< 1000; i++){
         __asm__("nop":::);
     }
     // load DMP code into memory banks
+    #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Writing DMP code to MPU memory banks (%d bytes)\r\n",MPU6050_DMP_CODE_SIZE);
     hc05_transmit(tempbuf,strlen(tempbuf));
+    #endif // MPU6050_DEBUG
     if (mpu6050_writeProgMemoryBlock(dmpMemory, MPU6050_DMP_CODE_SIZE,0,0,true)) {
-        sprintf(tempbuf,"Success! DMP code written and verified\r\n");
+ #ifdef MPU6050_DEBUG
+ sprintf(tempbuf,"Success! DMP code written and verified\r\n");
         hc05_transmit(tempbuf,strlen(tempbuf));
-
+#endif // MPU6050_DEBUG
         // write DMP configuration
-        sprintf(tempbuf,"Writing DMP configuration to MPU memory banks (%d bytes in config def\r\n",MPU6050_DMP_CONFIG_SIZE);
+ #ifdef MPU6050_DEBUG
+          sprintf(tempbuf,"Writing DMP configuration to MPU memory banks (%d bytes in config def\r\n",MPU6050_DMP_CONFIG_SIZE);
         hc05_transmit(tempbuf,strlen(tempbuf));
+        #endif // MPU6050_DEBUG
         if (mpu6050_writeProgDMPConfigurationSet(dmpConfig, MPU6050_DMP_CONFIG_SIZE)) {
             sprintf(tempbuf,"Success! DMP configuration written and verified\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
 
-            sprintf(tempbuf,"Setting clock source to Z Gyro..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting clock source to Z Gyro..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setClockSource(MPU6050_CLOCK_PLL_ZGYRO);
 
-            sprintf(tempbuf,"Setting DMP and FIFO_OFLOW interrupts enabled..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting DMP and FIFO_OFLOW interrupts enabled..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setIntEnabled(0x12);
 
-            sprintf(tempbuf,"Setting sample rate to 200Hz..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting sample rate to 200Hz..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setRate(4); // 1khz / (1 + 4) = 200 Hz
 
-            sprintf(tempbuf,"Setting external frame sync to TEMP_OUT_L[0]..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting external frame sync to TEMP_OUT_L[0]..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setExternalFrameSync(MPU6050_EXT_SYNC_TEMP_OUT_L);
 
-            sprintf(tempbuf,"Setting DLPF bandwidth to 42Hz..\r\n");
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Setting DLPF bandwidth to 42Hz..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setDLPFMode(MPU6050_DLPF_BW_42);
 
+   #ifdef MPU6050_DEBUG
             sprintf(tempbuf,"Setting gyro sensitivity to +/- 2000 deg/sec..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setFullScaleGyroRange(MPU6050_GYRO_FS_2000);
 
-            sprintf(tempbuf,"Setting DMP configuration bytes (function unknown)..\r\n");
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Setting DMP configuration bytes (function unknown)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setDMPConfig1(0x03);
             mpu6050_setDMPConfig2(0x00);
 
+   #ifdef MPU6050_DEBUG
             sprintf(tempbuf,"Clearing OTP Bank flag..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setOTPBankValid(false);
 
-            sprintf(tempbuf,"Setting X/Y/Z gyro offsets to previous values..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting X/Y/Z gyro offsets to previous values..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setXGyroOffset(xgOffset);
             mpu6050_setYGyroOffset(ygOffset);
             mpu6050_setZGyroOffset(zgOffset);
 
-            sprintf(tempbuf,"Setting X/Y/Z gyro user offsets to zero..\r\n");
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Setting X/Y/Z gyro user offsets to zero..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setXGyroOffsetUser(0);
             mpu6050_setYGyroOffsetUser(0);
             mpu6050_setZGyroOffsetUser(0);
 
-            sprintf(tempbuf,"Writing final memory update 1/7 (function unknown)..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Writing final memory update 1/7 (function unknown)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             uint8_t dmpUpdate[16], j;
             uint16_t pos = 0;
             for (j = 0; j < 4 || j < dmpUpdate[2] + 3; j++, pos++) dmpUpdate[j] = pgm_read_byte(&dmpUpdates[pos]);
             mpu6050_writeMemoryBlock(dmpUpdate + 3, dmpUpdate[2], dmpUpdate[0], dmpUpdate[1],true,false);
 
+   #ifdef MPU6050_DEBUG
             sprintf(tempbuf,"Writing final memory update 2/7 (function unknown)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             for (j = 0; j < 4 || j < dmpUpdate[2] + 3; j++, pos++) dmpUpdate[j] = pgm_read_byte(&dmpUpdates[pos]);
             mpu6050_writeMemoryBlock(dmpUpdate + 3, dmpUpdate[2], dmpUpdate[0], dmpUpdate[1],true,false);
 
+   #ifdef MPU6050_DEBUG
             sprintf(tempbuf,"Resetting FIFO..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_resetFIFO();
 
-            sprintf(tempbuf,"Reading FIFO count..\r\n");
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Reading FIFO count..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             uint8_t fifoCount = mpu6050_getFIFOCount();
             uint8_t fifoBuffer[128];
 
-            sprintf(tempbuf,"Current FIFO count=%d\r\n",fifoCount);
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Current FIFO count=%d\r\n",fifoCount);
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_getFIFOBytes(fifoBuffer, fifoCount);
 
-            sprintf(tempbuf,"Setting motion detection threshold to 2..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting motion detection threshold to 2..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setMotionDetectionThreshold(2);
 
-            sprintf(tempbuf,"Setting zero-motion detection threshold to 156..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting zero-motion detection threshold to 156..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setZeroMotionDetectionThreshold(156);
 
-            sprintf(tempbuf,"Setting motion detection duration to 80..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting motion detection duration to 80..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setMotionDetectionDuration(80);
 
-            sprintf(tempbuf,"Setting zero-motion detection duration to 0..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Setting zero-motion detection duration to 0..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setZeroMotionDetectionDuration(0);
 
-            sprintf(tempbuf,"Resetting FIFO..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Resetting FIFO..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_resetFIFO();
 
-            sprintf(tempbuf,"Enabling FIFO..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Enabling FIFO..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setFIFOEnabled(true);
 
-            sprintf(tempbuf,"Enabling DMP..\r\n");
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Enabling DMP..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_setDMPEnabled(true);
 
+   #ifdef MPU6050_DEBUG
             sprintf(tempbuf,"Resetting DMP..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_resetDMP();
 
-            sprintf(tempbuf,"Writing final memory update 3/7 (function unknown)..\r\n");
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Writing final memory update 3/7 (function unknown)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             for (j = 0; j < 4 || j < dmpUpdate[2] + 3; j++, pos++) dmpUpdate[j] = pgm_read_byte(&dmpUpdates[pos]);
             mpu6050_writeMemoryBlock(dmpUpdate + 3, dmpUpdate[2], dmpUpdate[0], dmpUpdate[1],true,false);
 
-            sprintf(tempbuf,"Writing final memory update 4/7 (function unknown)..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Writing final memory update 4/7 (function unknown)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             for (j = 0; j < 4 || j < dmpUpdate[2] + 3; j++, pos++) dmpUpdate[j] = pgm_read_byte(&dmpUpdates[pos]);
             mpu6050_writeMemoryBlock(dmpUpdate + 3, dmpUpdate[2], dmpUpdate[0], dmpUpdate[1],true,false);
 
-            sprintf(tempbuf,"Writing final memory update 5/7 (function unknown)..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Writing final memory update 5/7 (function unknown)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             for (j = 0; j < 4 || j < dmpUpdate[2] + 3; j++, pos++) dmpUpdate[j] = pgm_read_byte(&dmpUpdates[pos]);
             mpu6050_writeMemoryBlock(dmpUpdate + 3, dmpUpdate[2], dmpUpdate[0], dmpUpdate[1],true,false);
 
             sprintf(tempbuf,"Waiting for FIFO count > 2..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+
             while ((fifoCount = mpu6050_getFIFOCount()) < 3);// {
+
          //       sprintf(tempbuf,"Current FIFO count=%d\r\n",fifoCount);
            //     hc05_transmit(tempbuf,strlen(tempbuf));
             //};
 
-            sprintf(tempbuf,"Current FIFO count=%d\r\n",fifoCount);
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Current FIFO count=%d\r\n",fifoCount);
             hc05_transmit(tempbuf,strlen(tempbuf));
+
             sprintf(tempbuf,"Reading FIFO data..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_getFIFOBytes(fifoBuffer, fifoCount);
 
-            sprintf(tempbuf,"Reading interrupt status..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Reading interrupt status..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             uint8_t mpuIntStatus = mpu6050_getIntStatus();
 
-            sprintf(tempbuf,"Current interrupt status=%X\r\n",mpuIntStatus);
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Current interrupt status=%X\r\n",mpuIntStatus);
             hc05_transmit(tempbuf,strlen(tempbuf));
-
-            sprintf(tempbuf,"Reading final memory update 6/7 (function unknown)..\r\n");
+#endif // MPU6050_DEBUG
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Reading final memory update 6/7 (function unknown)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             for (j = 0; j < 4 || j < dmpUpdate[2] + 3; j++, pos++) dmpUpdate[j] = pgm_read_byte(&dmpUpdates[pos]);
             mpu6050_readMemoryBlock(dmpUpdate + 3, dmpUpdate[2], dmpUpdate[0], dmpUpdate[1]);
 
             sprintf(tempbuf,"Waiting for FIFO count > 2..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+
             while ((fifoCount = mpu6050_getFIFOCount()) < 3);
 
             sprintf(tempbuf,"Current FIFO count=%d\r\n",fifoCount);
             hc05_transmit(tempbuf,strlen(tempbuf));
 
-            sprintf(tempbuf,"Reading FIFO data..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Reading FIFO data..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_getFIFOBytes(fifoBuffer, fifoCount);
 
-            sprintf(tempbuf,"Reading interrupt status..\r\n");
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Reading interrupt status..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpuIntStatus = mpu6050_getIntStatus();
 
-            sprintf(tempbuf,"Current interrupt status=%X\r\n",mpuIntStatus);
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Current interrupt status=%X\r\n",mpuIntStatus);
             hc05_transmit(tempbuf,strlen(tempbuf));
-
-            sprintf(tempbuf,"Writing final memory update 7/7 (function unknown)..\r\n");
+#endif // MPU6050_DEBUG
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Writing final memory update 7/7 (function unknown)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             for (j = 0; j < 4 || j < dmpUpdate[2] + 3; j++, pos++) dmpUpdate[j] = pgm_read_byte(&dmpUpdates[pos]);
             mpu6050_writeMemoryBlock(dmpUpdate + 3, dmpUpdate[2], dmpUpdate[0], dmpUpdate[1],true,false);
 
+   #ifdef MPU6050_DEBUG
             sprintf(tempbuf,"DMP is good to go! Finally\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
-
+#endif // MPU6050_DEBUG
             sprintf(tempbuf,"Disabling DMP (you turn it on later)..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+
             mpu6050_setDMPEnabled(false);
 
-            sprintf(tempbuf,"Setting up internal 42-byte (default) DMP packet buffer..\r\n");
+  #ifdef MPU6050_DEBUG
+             sprintf(tempbuf,"Setting up internal 42-byte (default) DMP packet buffer..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             dmpPacketSize = 42;
             /*if ((dmpPacketBuffer = (uint8_t *)malloc(42)) == 0) {
                 return 3; // TODO: proper error code for no memory
             }*/
 
-            sprintf(tempbuf,"Resetting FIFO and clearing INT status one last time..\r\n");
+ #ifdef MPU6050_DEBUG
+              sprintf(tempbuf,"Resetting FIFO and clearing INT status one last time..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
+            #endif // MPU6050_DEBUG
             mpu6050_resetFIFO();
             mpu6050_getIntStatus();
         } else {

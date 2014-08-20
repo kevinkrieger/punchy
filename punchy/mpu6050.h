@@ -387,6 +387,7 @@ uint8_t mpu6050_buffer[16];
 uint8_t mpu6050_status;
 //uint8_t mpu6050_write_7bit_address = 0x68;
 //uint8_t mpu6050_read_7bit_address = 0x69;
+char tempbuf[32];
 
 int16_t ax;
 int16_t ay;
