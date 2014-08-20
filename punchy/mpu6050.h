@@ -1,6 +1,7 @@
 
 #ifndef MPU6050_H
 #define MPU6050_H
+
 #include <stdint.h>
 #include "i2c.h"
 
@@ -364,13 +365,23 @@
 #define MPU6050_DMP_MEMORY_BANK_SIZE    256
 #define MPU6050_DMP_MEMORY_CHUNK_SIZE   16
 
+
+#define MPU6050_DMP_CODE_SIZE       1929    // dmpMemory[]
+#define MPU6050_DMP_CONFIG_SIZE     192     // dmpConfig[]
+#define MPU6050_DMP_UPDATES_SIZE    47      // dmpUpdates[]
+
+#define pgm_read_word(data) (*(const unsigned char*)(data))
+#define pgm_read_byte(data) (*(const unsigned char*)(data))
+uint16_t dmpPacketSize;
+
+
 /*uint16_t mpu6050_disable_sleep[] = {0x6B,0x00};
 uint16_t mpu6050_read_address[] = {0x75,I2C_RESTART,I2C_READ};
 uint16_t mpu6050_read_accel[] = {0x3B,I2C_RESTART,I2C_READ,I2C_READ,I2C_READ,I2C_READ,I2C_READ,I2C_READ};
 uint16_t mpu6050_read_gyro[] = {0x43,I2C_RESTART,I2C_READ,I2C_READ,I2C_READ,I2C_READ,I2C_READ,I2C_READ};
 uint16_t mpu6050_read_temp[] = {0x41,I2C_RESTART,I2C_READ,I2C_READ};
 */
-//uint8_t mpu6050_buffer[16];
+uint8_t mpu6050_buffer[16];
 //uint8_t mpu6050_tx_buffer[16];
 //uint8_t mpu6050_buffer_pointer = 0;
 uint8_t mpu6050_status;
@@ -387,6 +398,8 @@ int16_t temperature;
 /* Routines */
 
 void mpu6050_init();
+
+void mpu6050_dmpinit();
 
 void mpu6050_getAddress();
 
@@ -406,7 +419,6 @@ void mpu6050_temp();
 reg 1c bit 3 and 4: AFS-SEL -> 0 +/-2 g, 1 is +/- 4g, 2 is +/-8g, 3 is +/- 16g */
 void mpu6050_configAccel(uint8_t accel_config);
 
-
-
+void mpu6050_calibrate_gyros(void);
 
 #endif /* _MPU6050_H_ */
