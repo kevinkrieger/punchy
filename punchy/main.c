@@ -16,10 +16,10 @@
 
 /* Data */
 volatile uint8_t data_received;
-char *hello_message = "\r\nHello world! \r\n";
+//char *hello_message = "\r\nHello world! \r\n";
 uint8_t TXByteCounter = 1;
 uint8_t TXByte = 0x75;
-
+uint8_t mpu6050_interrupt;
 uint8_t i = 0;
 
 
@@ -73,36 +73,74 @@ int main(void) {
 	hc05_init();
 
     /* Initialize mpu6050 */
+	mpu6050_interrupt = 0;
 	mpu6050_init();
     hc05_transmit("mpu6050 initialized\r\n",21);
 	_BIS_SR(GIE);
 	while(1) {
 
-        switch(data_received) {
-			case 'T':
-				mpu6050_temp();
-				break;
-			case 'A':
-				mpu6050_accel();
-				break;
-			case 'G':
-				mpu6050_gyro();
-				break;
-            case 'M':
-				mpu6050_getAddress();
-				break;
-			case 'W':
-				mpu6050_wakeup();
-				break;
-			case 'S':
-				mpu6050_sleep();
-				break;
-			case 'R':
-				mpu6050_reset();
-				break;
-			default:
-				sendAck();
-				break;
+        if(data_received != 0) {
+            switch(data_received) {
+                case 'T':
+                    mpu6050_temp();
+                    data_received = 0;
+                    break;
+                case 'A':
+                    mpu6050_accel();
+                    data_received = 0;
+                    break;
+                case 'G':
+                    mpu6050_gyro();
+                    data_received = 0;
+                    break;
+                case 'g':
+                    mpu6050_calibrate_gyros();
+                    data_received = 0;
+                    break;
+                case 'M':
+                    mpu6050_getAddress();
+                    data_received = 0;
+                    break;
+                case 'W':
+                    mpu6050_wakeup();
+                    data_received = 0;
+                    break;
+                case 'S':
+                    mpu6050_sleep();
+                    data_received = 0;
+                    break;
+                case 'R':
+                    mpu6050_reset();
+                    data_received = 0;
+                    break;
+                case 'd':
+                    mpu6050_dmpinit();
+                    data_received = 0;
+                    break;
+                case 'E':
+                    mpu6050_setDMPEnabled(true);
+                    P2DIR &= ~MPU6050_INT;  // Input
+                    P2SEL &= ~MPU6050_INT;  // Digital IO Psel and psel2 are 0
+                    P2SEL2 &= ~MPU6050_INT;
+                    P2IES &= ~MPU6050_INT;  // Edge select 0 = low to high
+                    P2IFG &= ~MPU6050_INT;  // Clear the interrupt flag before enabling interrupt
+                    P2IE |= MPU6050_INT;    // Interrupt enable
+                    data_received = 0;
+                    break;
+                case 'e':
+                    mpu6050_setDMPEnabled(false);
+                    data_received = 0;
+                    break;
+                default:
+                    sendAck();
+                    data_received = 0;
+                    break;
+            }
+		}
+		if(mpu6050_interrupt) {
+            hc05_transmit("I\r\n",3);
+			mpu6050_interrupt = 0;
+
 		}
 
 		  __bis_SR_register(LPM1_bits + GIE);
@@ -132,4 +170,13 @@ interrupt (USCIAB0TX_VECTOR) transmit_uart_I2C_data_isr(void) {
 	// I2C TXRX
 	i2c_handle_TXRX_interrupt();
 	__bic_SR_register_on_exit(LPM0_bits);
+}
+
+interrupt (PORT2_VECTOR) port2_isr(void) {
+    if(P2IFG & MPU6050_INT) {
+        /* We got an edge interrupt on the INT pin */
+        mpu6050_interrupt = 1;
+        P2IFG &= ~MPU6050_INT;
+        __bic_SR_register_on_exit(LPM0_bits);
+    }
 }
