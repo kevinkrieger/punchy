@@ -142,7 +142,7 @@ int main(void) {
                     sendAck();
                     i2c_write_reg(MPU6050_RA_INT_PIN_CFG,0x10);//interrupt status cleared on any read
                     //i2c_write_reg(MPU6050_RA_MOT_DETECT_CTRL,0x30); // add the 3 ms delay to accel put
-                    mpu6050_setIntEnabled(0x40);//motion detect
+                    mpu6050_setIntEnabled(0x40);//motion detect... based on the product specification document, I don't think motion detect can generate an interrupt on INT pin
                     mpu6050_setMotionDetectionThreshold(0x01);//not sure... but I'm told it's 2mg per LSB so 0xFF would only be about 0.512g
                     data_received = 0;
                     while(1) {
