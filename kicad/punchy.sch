@@ -39,7 +39,7 @@ $Descr A 11000 8500
 encoding utf-8
 Sheet 1 1
 Title "punchy-v1"
-Date "18 jul 2014"
+Date "22 aug 2014"
 Rev "1"
 Comp ""
 Comment1 ""
@@ -926,4 +926,6 @@ Wire Wire Line
 	9650 1350 9650 1250
 Wire Wire Line
 	9650 2050 9650 1850
+Text Notes 700  5850 0    60   ~ 0
+The DMG1012t-7 has an internal diode from source to drain.\nIt also has a gate protection diode \n
 $EndSCHEMATC
