@@ -194,7 +194,7 @@ const uint8_t dmpConfig[MPU6050_DMP_CONFIG_SIZE] = {
     0x07,   0x46,   0x01,   0x9A,                     // CFG_GYRO_SOURCE inv_send_gyro
     0x07,   0x47,   0x04,   0xF1, 0x28, 0x30, 0x38,   // CFG_9 inv_send_gyro -> inv_construct3_fifo
     0x07,   0x6C,   0x04,   0xF1, 0x28, 0x30, 0x38,   // CFG_12 inv_send_accel -> inv_construct3_fifo
-    0x02,   0x16,   0x02,   0x00, 0x09                // D_0_22 inv_set_fifo_rate
+    0x02,   0x16,   0x02,   0x00, 0x04                  // D_0_22 inv_set_fifo_rate
 
     // This very last 0x01 WAS a 0x09, which drops the FIFO rate down to 20 Hz. 0x07 is 25 Hz,
     // 0x01 is 100Hz. Going faster than 100Hz (0x00=200Hz) tends to result in very noisy data.
@@ -386,8 +386,8 @@ bool mpu6050_writeMemoryBlock(const uint8_t data[], uint16_t dataSize, uint8_t b
     mpu6050_setMemoryBank(bank,false,false);
     mpu6050_setMemoryStartAddress(address);
     uint8_t chunkSize;
-    volatile uint8_t *verifyBuffer;
-    volatile uint8_t *progBuffer;
+    uint8_t *verifyBuffer;
+    uint8_t *progBuffer;
     uint16_t i;
     uint8_t j;
     if (verify) verifyBuffer = (uint8_t *)malloc(MPU6050_DMP_MEMORY_CHUNK_SIZE);
@@ -832,9 +832,9 @@ void mpu6050_dmpinit(){
  #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Checking hardware revision..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
-    #endif // MPU6050_DEBUG
+
     uint8_t hwRevision = mpu6050_readMemoryByte();
- #ifdef MPU6050_DEBUG
+
     sprintf(tempbuf,"Revision @ user[16][6] = %X\r\n",hwRevision);
     hc05_transmit(tempbuf,strlen(tempbuf));
  #endif // MPU6050_DEBUG
@@ -849,9 +849,9 @@ void mpu6050_dmpinit(){
 #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Reading OTP bank valid flag..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
-#endif // MPU6050_DEBUG
+
     uint8_t otpValid = mpu6050_getOTPBankValid();
-#ifdef MPU6050_DEBUG
+
     if(otpValid) {
         sprintf(tempbuf,"OTP bank is valid\r\n");
     }
@@ -867,14 +867,16 @@ void mpu6050_dmpinit(){
     int8_t xgOffset = mpu6050_getXGyroOffset();
     int8_t ygOffset = mpu6050_getYGyroOffset();
     int8_t zgOffset = mpu6050_getZGyroOffset();
-#ifdef MPU6050_DEBUG
+//#ifdef MPU6050_DEBUG
     sprintf(tempbuf,"X gyro offset = %d\r\n",xgOffset);
     hc05_transmit(tempbuf,strlen(tempbuf));
     sprintf(tempbuf,"Y gyro offset = %d\r\n",ygOffset);
     hc05_transmit(tempbuf,strlen(tempbuf));
     sprintf(tempbuf,"Z gyro offset = %d\r\n",zgOffset);
     hc05_transmit(tempbuf,strlen(tempbuf));
+//#endif
 
+#ifdef MPU6050_DEBUG
     // setup weird slave stuff (?)
     sprintf(tempbuf,"Setting slave 0 address to 0x7F..\r\n");
     hc05_transmit(tempbuf,strlen(tempbuf));
@@ -928,7 +930,7 @@ void mpu6050_dmpinit(){
               sprintf(tempbuf,"Setting DMP and FIFO_OFLOW interrupts enabled..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
             #endif // MPU6050_DEBUG
-            mpu6050_setIntEnabled(0x12);
+            mpu6050_setIntEnabled(0x12); //0x12 is fifo overflow and ... I have no idea
 
  #ifdef MPU6050_DEBUG
               sprintf(tempbuf,"Setting sample rate to 200Hz..\r\n");
@@ -1108,10 +1110,9 @@ void mpu6050_dmpinit(){
  #ifdef MPU6050_DEBUG
               sprintf(tempbuf,"Reading interrupt status..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
-            #endif // MPU6050_DEBUG
+
             uint8_t mpuIntStatus = mpu6050_getIntStatus();
 
- #ifdef MPU6050_DEBUG
               sprintf(tempbuf,"Current interrupt status=%X\r\n",mpuIntStatus);
             hc05_transmit(tempbuf,strlen(tempbuf));
 #endif // MPU6050_DEBUG
@@ -1139,10 +1140,10 @@ void mpu6050_dmpinit(){
   #ifdef MPU6050_DEBUG
              sprintf(tempbuf,"Reading interrupt status..\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
-            #endif // MPU6050_DEBUG
+
             mpuIntStatus = mpu6050_getIntStatus();
 
- #ifdef MPU6050_DEBUG
+
               sprintf(tempbuf,"Current interrupt status=%X\r\n",mpuIntStatus);
             hc05_transmit(tempbuf,strlen(tempbuf));
 #endif // MPU6050_DEBUG
@@ -1180,14 +1181,14 @@ void mpu6050_dmpinit(){
         } else {
             sprintf(tempbuf,"ERROR! DMP configuration verification failed\r\n");
             hc05_transmit(tempbuf,strlen(tempbuf));
-            return 2; // configuration block loading failed
+            return;// 2; // configuration block loading failed
         }
     } else {
         sprintf(tempbuf,"ERROR! DMP code verification failed\r\n");
         hc05_transmit(tempbuf,strlen(tempbuf));
-        return 1; // main binary block loading failed
+        return;// 1; // main binary block loading failed
     }
-    return 0; // success
+    return;// 0; // success
 }
 
 
