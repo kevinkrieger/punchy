@@ -15,13 +15,16 @@
 #define BAUD		    9600
 #define BT_RX 		    BIT1	// Which pin on port 2 is the RX pin?
 #define BT_TX 		    BIT2	// Which pin on port 2 is the TX pin?
+#define CYCLES_PER_US (FOSC/1000000)
+#define __delay_us(delay) __delay_cycles((CYCLES_PER_US*delay))
+
 
 uint8_t TXData;
 uint8_t hc05_buffer[32];
 
 void hc05_transmit(char *data, uint16_t transmit_length);
 
-void hc05_init();
+void hc05_init(uint16_t uca0br);
 
 void hc05_off();
 
