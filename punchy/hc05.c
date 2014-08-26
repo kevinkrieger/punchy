@@ -15,7 +15,7 @@ void hc05_transmit(char *data, uint16_t transmit_length) {
 
 void hc05_init(uint16_t uca0br) {
 	P2DIR |= BT_ON + BT_RESET; /* Port 2 bluetooth on pin is output and on */
-	P2OUT |= BT_ON;
+	P2OUT &= ~BT_ON;
 	P2OUT |= BT_RESET;//reset is active low
 	P1SEL &= ~BT_KEY;
     P1SEL2 &= ~BT_KEY;
@@ -39,12 +39,12 @@ void hc05_init(uint16_t uca0br) {
 }
 
 void hc05_off() {
-    P2OUT &= ~BT_ON; /* Doesn't work in board rev-1 due to DMG1012t-7 diode from source to drain. */
+    P2OUT |= BT_ON; /* Doesn't work in board rev-1 due to DMG1012t-7 diode from source to drain. */
 }
 
 void hc05_on() {
-    P2DIR = BT_ON; /* Port 2 bluetooth on pin is output and on */
-	P2OUT = BT_ON;
+    P2DIR |= BT_ON; /* Port 2 bluetooth on pin is output and on */
+	P2OUT &= ~BT_ON;
 }
 
 void hc05_key() {
