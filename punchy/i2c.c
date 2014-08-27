@@ -18,10 +18,11 @@ void i2c_init()
     UCB0CTL0 = UCMODE0 + UCMODE1 + UCMST + UCSYNC; // Master mode, I2C mode, synchronous mode
     //7 bit addressing
     UCB0CTL1 = UCSWRST + UCSSEL_2;
-    UCB0BR0 = 24; // The clock source is divided down by UCB0R register pair + 1
-    UCB0BR1 = 0; // Example - if using 1MHz calibrated internal clock, and this is
-    // set to '24' then the clock to the UCB0 I2C module will be 40kHz (=1MHz/25)
 
+    uint16_t ucb0br = ((FOSC)/400000) - 1;
+    UCB0BR0 = ucb0br & 0xFF; // The clock source is divided down by UCB0R register pair + 1
+    UCB0BR1 = (ucb0br >> 8) & 0xFF; // Example - if using 1MHz calibrated internal clock, and this is
+    // set to '24' then the clock to the UCB0 I2C module will be 40kHz (=1MHz/25)
 
     UCB0I2CSA = 0x68; // UCB0I2CSA contains the slave address (7 or 10  bit) of the slave
     // that the msp430 is talking to over I2C bus.
