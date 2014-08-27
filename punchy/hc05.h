@@ -17,7 +17,7 @@
 #define BT_TX 		    BIT2	// Which pin on port 2 is the TX pin?
 #define CYCLES_PER_US (FOSC/1000000)
 #define __delay_us(delay) __delay_cycles((CYCLES_PER_US*delay))
-
+#define __baud_to_uca0br(baud) (FOSC/(baud))
 
 uint8_t TXData;
 uint8_t hc05_buffer[32];
