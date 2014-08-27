@@ -801,7 +801,7 @@ void mpu6050_dmpinit(){
 
     //delay(30); // wait after reset
     int i;
-    for(i = 0; i< 1000; i++){
+    for(i = 0; i< 2000; i++){
         __asm__("nop":::);
     }
     // enable sleep mode and wake cycle
@@ -898,7 +898,7 @@ void mpu6050_dmpinit(){
 #endif // MPU6050_DEBUG
     mpu6050_resetI2CMaster();
     //delay(20);
-    for(i = 0; i< 1000; i++){
+    for(i = 0; i< 2000; i++){
         __asm__("nop":::);
     }
     // load DMP code into memory banks
