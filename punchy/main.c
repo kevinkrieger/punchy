@@ -8,34 +8,27 @@
 #include "hc05.h"
 #include "mpu6050.h"
 #include "stdio.h"
-
-/* Defines */
-//#define FOSC        1000000 // Oscillator speed in Hz
-//#define FOSC 8000000
-//extern inline void sendAck();
+#include "utility.h"
 
 /* Data */
 volatile uint8_t data_received;
-//char *hello_message = "\r\nHello world! \r\n";
 uint8_t TXByteCounter = 1;
 uint8_t TXByte = 0x75;
-uint8_t mpu6050_interrupt;
+uint8_t mpu6050_interrupt = 0;
 uint8_t i = 0;
 uint16_t fifoCount = 0;
-//uint8_t fifoBuffer[64];
-uint8_t fifoBuffer[16];
 uint16_t packetSize;
 char teapotPacket[14] = {'$',0x02,0,0,0,0,0,0,0,0,0x00,0x00,'\r','\n'};
 char mpuIntStatus;
 uint8_t motion_detect_mode = 0;
 uint8_t dmp_mode = 0;
+
+
 /* Routines */
-
-
 
 /* Initialize Clocks */
 void initClocks(void) {
-	/* Set 1mhz calibrated for clock
+	/* Set calibrated clock
 	 * The if statement will halt the processor if there is no
 	 * calibration data (if it was erased, for example)*/
 	if (CALBC1_16MHZ == 0xFF) {
@@ -51,6 +44,8 @@ void initClocks(void) {
 	 * 01 - /2
 	 * 10 - /4
 	 * 11 - /8 -> Set this so we get 12kHz/8 = 1.5kHz*/
+	 BCSCTL3 &= ~(LFXT1S0 + LFXT1S1); // disable VLO (12kHz very low power internal oscillator for ACLK)
+	 // enable it when you need it by setting LFXT1S1
 }
 
 
@@ -75,47 +70,51 @@ int main(void) {
 	WDTCTL = WDTPW + WDTHOLD;
 	initClocks();
 
-	/* Configure Bluetooth module. 9600 baud */
+	/* Configure Bluetooth module */
 	hc05_init(__baud_to_uca0br(9600));
-    //hc05_init(69);
+    hc05_transmit("HC05 init\r\n",11);
+
     /* Initialize mpu6050 */
-	mpu6050_interrupt = 0;
 	mpu6050_init();
-	__delay_us(100);
-//	mpu6050_dmpinit();
-    hc05_transmit("mpu6050 initialized\r\n",21);
+    hc05_transmit("mpu6050 init\r\n",14);
+
+    /* Now we are ready for application code to run. Enable interrupts */
 	_BIS_SR(GIE);
+
 	while(1) {
 
         if(data_received != 0) {
             switch(data_received) {
                 case 'T':
+                data_received = 0;
                     mpu6050_temp();
-                    data_received = 0;
+
                     break;
                 case 'A':
-                    mpu6050_accel();
                     data_received = 0;
+
+                    mpu6050_accel();
                     break;
                 case 'G':
-                    mpu6050_gyro();
                     data_received = 0;
+
+                    mpu6050_gyro();
                     break;
                 case 'g':
-                    mpu6050_calibrate_gyros();
                     data_received = 0;
+                    mpu6050_calibrate_gyros();
                     break;
                 case 'M':
-                    mpu6050_getAddress();
                     data_received = 0;
+                    mpu6050_getAddress();
                     break;
                 case 'W':
-                    mpu6050_wakeup();
                     data_received = 0;
+                    mpu6050_wakeup();
                     break;
                 case 'S':
-                    mpu6050_sleep();
                     data_received = 0;
+                    mpu6050_sleep();
                     break;
                 case 'R':
                     data_received = 0;
@@ -141,9 +140,9 @@ int main(void) {
                     //mpu6050_resetFIFO();
                     break;
                 case 'e':
-                    mpu6050_setDMPEnabled(false);
                     dmp_mode = 0;
                     data_received = 0;
+                    mpu6050_setDMPEnabled(false);
                     break;
                 case 'm': /* Itseems that I can have motion detect interrupts if I first call the dmpinit() function, then this code is run. I can probably narrow it down
                 to a certain function call in the dmpinit() it will just take time */
@@ -172,6 +171,7 @@ int main(void) {
                             hc05_transmit("Motion\r\n",8);
                         }
                     }*/
+
                     break;
               //  case 'h':
                 //    hc05_setspeed(115200);

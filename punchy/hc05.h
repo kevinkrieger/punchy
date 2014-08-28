@@ -4,6 +4,7 @@
 #include <legacymsp430.h>
 #include <stdint.h>
 #include <msp430g2553.h>
+#include "utility.h"
 
 #define BT_KEY          BIT0    // Port 1
 #define BT_RED          BIT3    // Port 1

@@ -1,4 +1,5 @@
 #include "i2c.h"
+#include "utility.h"
 
 /* I2C routines */
 
@@ -12,6 +13,36 @@ void i2c_init()
     {
         P1OUT ^= SCL;
     }
+/*
+    delay_ms(1);
+    P1OUT ^= SCL;
+    delay_ms(2);
+    P1OUT ^= SCL;
+    delay_ms(25);
+    P1OUT ^= SCL;
+    delay_ms(50);
+    P1OUT ^= SCL;
+    delay_ms(75);
+    P1OUT ^= SCL;
+    delay_ms(100);
+    P1OUT ^= SCL;
+    delay_ms(125);
+    P1OUT ^= SCL;
+    delay_ms(150);
+    P1OUT ^= SCL;
+    delay_ms(175);
+    P1OUT ^= SCL;
+    delay_ms(200);
+    P1OUT ^= SCL;
+    delay_ms(225);
+    P1OUT ^= SCL;
+    delay_ms(250);
+    P1OUT ^= SCL;
+    delay_ms(255);
+    P1OUT ^= SCL;
+*/
+
+
     P1SEL |= SDA + SCL;
     P1SEL2 |= SDA + SCL;
     UCB0CTL1 |= UCSWRST; //Keep in reset until configured
@@ -19,7 +50,7 @@ void i2c_init()
     //7 bit addressing
     UCB0CTL1 = UCSWRST + UCSSEL_2;
 
-    uint16_t ucb0br = ((FOSC)/400000) - 1;
+    uint16_t ucb0br = ((FOSC)/(I2C_SPEED_HZ)) - 1;
     UCB0BR0 = ucb0br & 0xFF; // The clock source is divided down by UCB0R register pair + 1
     UCB0BR1 = (ucb0br >> 8) & 0xFF; // Example - if using 1MHz calibrated internal clock, and this is
     // set to '24' then the clock to the UCB0 I2C module will be 40kHz (=1MHz/25)

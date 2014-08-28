@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include "i2c.h"
-
+#include "utility.h"
 
 
 #define MPU6050_INT     BIT1    // Port 2
@@ -372,22 +372,12 @@
 
 #define pgm_read_word(data) (*(const unsigned char*)(data))
 #define pgm_read_byte(data) (*(const unsigned char*)(data))
+
 uint16_t dmpPacketSize;
-
-
-/*uint16_t mpu6050_disable_sleep[] = {0x6B,0x00};
-uint16_t mpu6050_read_address[] = {0x75,I2C_RESTART,I2C_READ};
-uint16_t mpu6050_read_accel[] = {0x3B,I2C_RESTART,I2C_READ,I2C_READ,I2C_READ,I2C_READ,I2C_READ,I2C_READ};
-uint16_t mpu6050_read_gyro[] = {0x43,I2C_RESTART,I2C_READ,I2C_READ,I2C_READ,I2C_READ,I2C_READ,I2C_READ};
-uint16_t mpu6050_read_temp[] = {0x41,I2C_RESTART,I2C_READ,I2C_READ};
-*/
 uint8_t mpu6050_buffer[16];
-//uint8_t mpu6050_tx_buffer[16];
-//uint8_t mpu6050_buffer_pointer = 0;
 uint8_t mpu6050_status;
-//uint8_t mpu6050_write_7bit_address = 0x68;
-//uint8_t mpu6050_read_7bit_address = 0x69;
 char tempbuf[32];
+uint8_t fifoBuffer[128];
 
 int16_t ax;
 int16_t ay;
@@ -396,6 +386,7 @@ int16_t gx;
 int16_t gy;
 int16_t gz;
 int16_t temperature;
+
 /* Routines */
 
 void mpu6050_init();

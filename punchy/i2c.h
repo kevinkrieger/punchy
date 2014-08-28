@@ -5,13 +5,14 @@
 #include <msp430g2553.h>
 
 /* Defines */
-
 typedef int bool;
 #define true 1
 #define false 0
 
 #define SDA			BIT7
 #define SCL			BIT6
+
+#define I2C_SPEED_HZ 400000
 
 /* Data */
 uint8_t tx_to_rc;

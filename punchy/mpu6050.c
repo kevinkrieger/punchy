@@ -801,9 +801,10 @@ void mpu6050_dmpinit(){
 
     //delay(30); // wait after reset
     int i;
-    for(i = 0; i< 2000; i++){
+    delay_ms(30);
+    /*for(i = 0; i< 2000; i++){
         __asm__("nop":::);
-    }
+    }*/
     // enable sleep mode and wake cycle
     /*Serial.println(F("Enabling sleep mode...");
     setSleepEnabled(true);
@@ -898,9 +899,10 @@ void mpu6050_dmpinit(){
 #endif // MPU6050_DEBUG
     mpu6050_resetI2CMaster();
     //delay(20);
-    for(i = 0; i< 2000; i++){
+    delay_ms(20);
+  /*  for(i = 0; i< 2000; i++){
         __asm__("nop":::);
-    }
+    }*/
     // load DMP code into memory banks
     #ifdef MPU6050_DEBUG
     sprintf(tempbuf,"Writing DMP code to MPU memory banks (%d bytes)\r\n",MPU6050_DMP_CODE_SIZE);
@@ -1012,7 +1014,7 @@ void mpu6050_dmpinit(){
             hc05_transmit(tempbuf,strlen(tempbuf));
             #endif // MPU6050_DEBUG
             uint8_t fifoCount = mpu6050_getFIFOCount();
-            uint8_t fifoBuffer[128];
+
 
  #ifdef MPU6050_DEBUG
               sprintf(tempbuf,"Current FIFO count=%d\r\n",fifoCount);
@@ -1308,6 +1310,7 @@ void mpu6050_calibrate_gyros()
         gz_1000sum += (i2c_rx_buffer[4]<<8 | i2c_rx_buffer[5]);
 
 		//__delay_ms(1);
+		delay_ms(1);
 	}
 	gx = gx_1000sum/1024;
 	gy = gy_1000sum/1024;
