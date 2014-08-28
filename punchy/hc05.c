@@ -10,6 +10,7 @@ void hc05_transmit(char *data, uint16_t transmit_length) {
 		UCA0TXBUF = *data;
 		data++;
 	}
+	while((UCA0STAT & UCBUSY)); // Wait until last byte finished transmitting
 }
 
 void hc05_init(uint16_t uca0br) {
