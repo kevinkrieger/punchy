@@ -365,8 +365,17 @@
 #define MPU6050_DMP_MEMORY_BANK_SIZE    256
 #define MPU6050_DMP_MEMORY_CHUNK_SIZE   16
 
-
 #define MPU6050_DMP_CODE_SIZE       1929    // dmpMemory[]
+
+/*#define MPU6050_DMP_CODE_SIZE0       256    // dmpMemory0[]
+#define MPU6050_DMP_CODE_SIZE1       256    // dmpMemory1[]
+#define MPU6050_DMP_CODE_SIZE2       256    // dmpMemory2[]
+#define MPU6050_DMP_CODE_SIZE3       256    // dmpMemory3[]
+#define MPU6050_DMP_CODE_SIZE4       256    // dmpMemory4[]
+#define MPU6050_DMP_CODE_SIZE5       256    // dmpMemory5[]
+#define MPU6050_DMP_CODE_SIZE6       256    // dmpMemory6[]
+#define MPU6050_DMP_CODE_SIZE7       138    // dmpMemory7[]
+*/
 #define MPU6050_DMP_CONFIG_SIZE     192     // dmpConfig[]
 #define MPU6050_DMP_UPDATES_SIZE    47      // dmpUpdates[]
 
@@ -385,6 +394,8 @@ int16_t az;
 int16_t gx;
 int16_t gy;
 int16_t gz;
+//int32_t a_abs;
+//int32_t g_abs;
 int16_t temperature;
 
 /* Routines */

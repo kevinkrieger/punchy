@@ -22,7 +22,12 @@ char teapotPacket[14] = {'$',0x02,0,0,0,0,0,0,0,0,0x00,0x00,'\r','\n'};
 char mpuIntStatus;
 uint8_t motion_detect_mode = 0;
 uint8_t dmp_mode = 0;
-
+uint8_t threshold = 0x02; //2 milli g's per lsb
+uint8_t threshold_duration = 35; //milliseconds
+//#define ACCELBUFSIZE 16
+//int16_t accelX[ACCELBUFSIZE];
+//int16_t accelY[ACCELBUFSIZE];
+//int16_t accelZ[ACCELBUFSIZE];
 
 /* Routines */
 
@@ -152,11 +157,12 @@ int main(void) {
                     mpu6050_setDMPEnabled(false);
                     i2c_write_reg(MPU6050_RA_INT_PIN_CFG,0x10);//interrupt status cleared on any read
                     //i2c_write_reg(MPU6050_RA_MOT_DETECT_CTRL,0x30); // add the 3 ms delay to accel put
-                    mpu6050_setMotionDetectionThreshold(0x01);//not sure... but I'm told it's 2mg per LSB so 0xFF would only be about 0.512g
-                    mpu6050_setMotionDetectionDuration(40);
+                    mpu6050_setMotionDetectionThreshold(threshold);//not sure... but I'm told it's 2mg per LSB so 0xFF would only be about 0.512g
+                    mpu6050_setMotionDetectionDuration(threshold_duration); // This duration will really change the snappiness and responsiveness of the motion detect (duh) so
+                    // it should be set to as low as possible, then set detection threshold to the appropriate value for punches or whatever
                     mpu6050_setIntEnabled(0x40);//motion detect... based on the product specification document, I don't think motion detect can generate an interrupt on INT pin,
                     // so we also set the data ready interrupt.
-                   mpu6050_configAccel(MPU6050_ACCEL_FS_16<<(MPU6050_ACONFIG_AFS_SEL_BIT-1));
+                    mpu6050_configAccel(MPU6050_ACCEL_FS_16<<(MPU6050_ACONFIG_AFS_SEL_BIT-1));
                     data_received = 0;
                     P2DIR &= ~MPU6050_INT;  // Input
                     P2SEL &= ~MPU6050_INT;  // Digital IO Psel and psel2 are 0
@@ -173,6 +179,23 @@ int main(void) {
                     }*/
 
                     break;
+                case 'l':
+                    threshold = threshold - 1;
+                    mpu6050_setMotionDetectionThreshold(threshold);
+                    break;
+                case 'p':
+                    threshold = threshold + 1;
+                    mpu6050_setMotionDetectionThreshold(threshold);
+                    break;
+                case 'L':
+                    threshold_duration = threshold_duration - 5;
+                    mpu6050_setMotionDetectionDuration(threshold_duration);
+                    break;
+                case 'P':
+                    threshold_duration = threshold_duration + 5;
+                    mpu6050_setMotionDetectionDuration(threshold_duration);
+                    break;
+
               //  case 'h':
                 //    hc05_setspeed(115200);
                 //    data_received = 0;
@@ -224,21 +247,49 @@ int main(void) {
                     mpu6050_setIntEnabled(0x00);
                     //motion interrupt
                   //  hc05_transmit("Motion\r\n",8);
-                    for(uint8_t j = 0; j<200; j++) {
+                    for(uint8_t j = 0; j<100; j++) {
                         mpu6050_accel();
+                        delay_ms(2);
+                      //  i2c_tx_buffer[0] = 0x3B;
+                     //   i2c_tx_buffer_counter = 1;
+                    //	i2c_transmit_to_receive();
+                     //   i2c_transmit();
+                    //    i2c_multireceive(6);
+                    //	for(j = 0; j< 6; j++) {
+                        //	TXData = i2c_rx_buffer[j];
 
+                        /* These are div 16384 if +/-2g, 8192 if +/-4g, 4096 if +/-8g and 2048 if +/-16g*/
+                        //accelX[j] = (i2c_rx_buffer[0]<<8 | i2c_rx_buffer[1]);
+                        //accelY[j] = (i2c_rx_buffer[2]<<8 | i2c_rx_buffer[3]);
+                        //accelZ[j] = (i2c_rx_buffer[4]<<8 | i2c_rx_buffer[5]);
+                        //sprintf(tempbuf,"%d %d %d\r\n",ax,ay,az);
+                        //sprintf(tempbuf,"E%d,%d,%d\r\n",ax,ay,az);
+                       // hc05_transmit(tempbuf,strlen(tempbuf));
+                    //    hc05_transmit((char*)ax,1);
+                        //hc05_transmit((char*)ay,1);
+                        //hc05_transmit((char*)az,1);
+                        //}
                         //__delay_us(1000);
-                        delay_ms(1); // For some reason, using this delay_ms(5) or 1 ms, the output in mpu6050_accel() is not right...
-                        // mostly the \r\n are cut off. I have no idea why, perhaps due to modifying the smclk? a test will be to wait at
-                        // the end of the transmit function!
+                        //delay_ms(2);
 
                     }
 
+                   // hc05_transmit((char*)accelX,2*ACCELBUFSIZE);
+                   // hc05_transmit((char*)accelY,2*ACCELBUFSIZE);
+                   // hc05_transmit((char*)accelZ,2*ACCELBUFSIZE);
+                   // mpu6050_getIntStatus();
                     mpu6050_setIntEnabled(0x40);
+                } else {
+                  //  sprintf(tempbuf,"Unknown interrupt\r\n");
+                  //  hc05_transmit(tempbuf,strlen(tempbuf));
                 }
+            } else {
+//                mpu6050_getIntStatus(); // Clear any other interrupts
+               // sprintf(tempbuf,"Unknown mode & interrupt\r\n");
+               // hc05_transmit(tempbuf,strlen(tempbuf));
             }
 		}
-		  __bis_SR_register(LPM1_bits + GIE);
+		  __bis_SR_register(LPM0_bits + GIE);
 	}
 }
 
