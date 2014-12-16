@@ -10,7 +10,41 @@
 #include "stdio.h"
 #include "utility.h"
 
-/* Data */
+/* Memory allocated in other places:
+
+mpu6050.h:
+
+uint16_t dmpPacketSize;
+uint8_t mpu6050_buffer[16];
+uint8_t mpu6050_status;
+char tempbuf[32];
+uint8_t fifoBuffer[128];
+
+int16_t ax;
+int16_t ay;
+int16_t az;
+int16_t gx;
+int16_t gy;
+int16_t gz;
+int16_t temperature;
+
+
+hc05.h:
+
+uint8_t TXData;
+uint8_t hc05_buffer[32];
+
+
+i2c.h:
+
+uint8_t tx_to_rc;
+uint8_t i2c_rx_buffer[32];
+uint8_t i2c_rx_buffer_pointer;
+uint8_t i2c_rx_buffer_length;
+uint8_t i2c_tx_buffer[32];
+uint8_t i2c_tx_buffer_counter;
+
+*/
 volatile uint8_t data_received;
 uint8_t TXByteCounter = 1;
 uint8_t TXByte = 0x75;

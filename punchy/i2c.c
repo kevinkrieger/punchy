@@ -13,35 +13,6 @@ void i2c_init()
     {
         P1OUT ^= SCL;
     }
-/*
-    delay_ms(1);
-    P1OUT ^= SCL;
-    delay_ms(2);
-    P1OUT ^= SCL;
-    delay_ms(25);
-    P1OUT ^= SCL;
-    delay_ms(50);
-    P1OUT ^= SCL;
-    delay_ms(75);
-    P1OUT ^= SCL;
-    delay_ms(100);
-    P1OUT ^= SCL;
-    delay_ms(125);
-    P1OUT ^= SCL;
-    delay_ms(150);
-    P1OUT ^= SCL;
-    delay_ms(175);
-    P1OUT ^= SCL;
-    delay_ms(200);
-    P1OUT ^= SCL;
-    delay_ms(225);
-    P1OUT ^= SCL;
-    delay_ms(250);
-    P1OUT ^= SCL;
-    delay_ms(255);
-    P1OUT ^= SCL;
-*/
-
 
     P1SEL |= SDA + SCL;
     P1SEL2 |= SDA + SCL;
@@ -65,41 +36,32 @@ void i2c_init()
     // IFG2 &= ~(UCB0TXIFG + UCB0RXIFG);
     IE2 |=  UCB0RXIE +UCB0TXIE; // interrupt when USCI_B0 UCB0TXBUF is empty and when UCB0RXBUF has a complete character
 
-// _enable_interrupts();
     eint();
 }
 
-void i2c_transmit(void)   // txifg will go right away, so we need to disable interrupts until STT is done!
+void i2c_transmit(void)
 {
-//__dint();
     tx_to_rc = 0;
     while(UCB0CTL1 & UCTXSTP);
     UCB0CTL1 |= UCTR + UCTXSTT;
     while(UCB0CTL1 & UCTXSTT);
 
-
-//__eint();
     __bis_SR_register(LPM0_bits + GIE);
-    // __bis_SR_register(GIE);
-    //UCB0CTL1 |= UCTR + UCTXSTT;
-    while(UCB0STAT & UCBBUSY); /* NEED TO DO THIS!!!! */
+
+    while(UCB0STAT & UCBBUSY);
 }
 
 void i2c_transmit_to_receive()
 {
-//__dint();
     tx_to_rc = 1;
     while(UCB0CTL1 & UCTXSTP);
     UCB0CTL1 |= UCTR + UCTXSTT;
 
-//__eint();
     __bis_SR_register(LPM0_bits + GIE);
-
 }
 
 void i2c_receive(void)
 {
-    //mpu6050_buffer_pointer=0;
     i2c_rx_buffer_pointer = 0;
     while(UCB0CTL1 & UCTXSTP);
     UCB0CTL1 &= ~UCTR;
@@ -112,7 +74,6 @@ void i2c_receive(void)
 void i2c_multireceive(uint8_t receive_amount)
 {
     // Last one needs to have STP bit set in middle of reception
-    //mpu6050_buffer_pointer=0;
     if(receive_amount == 1) {
         i2c_receive();
     } else {
@@ -124,19 +85,11 @@ void i2c_multireceive(uint8_t receive_amount)
         for( i = 0; i<receive_amount - 1; i++)
         {
             __bis_SR_register(LPM0_bits + GIE);
-            //		IFG2 &= ~UCB0TXIFG; 		// clear txifg
-            // RX interrupt
-            // will fire when we have received a byte
         }
-    //	while(UCB0CTL1 &UCTXSTP);
-    //	UCB0CTL1 &= ~UCTR;
-    //	UCB0CTL1 |= UCTXSTT;
-        //while(UCB0CTL1 & UCTXSTT);
         UCB0CTL1 |= UCTXSTP;
         __bis_SR_register(LPM0_bits + GIE);
     }
 }
-
 
 void i2c_write_reg(uint8_t reg, uint8_t value) {
     i2c_tx_buffer[1] = reg;
@@ -147,28 +100,17 @@ void i2c_write_reg(uint8_t reg, uint8_t value) {
 
 /* Write bytes to a single register address */
 void i2c_write_bytes(uint8_t regAddr, uint8_t length, uint8_t* data) {
-    //I2C_writeBytesToAddress(devAddr, regAddr, length, data);
-  /*  int i;
-    for(i = 0; i<length; i++) {
-        i2c_write_reg(regAddr,*data);
-        data++;
-    }*/
-   // if(length == 1) {
-   //     i2c_write_reg(regAddr,*data);
-   // } else {
-        i2c_tx_buffer[length] = regAddr;
-        for(int i = 0;i<length;i++) {
-            i2c_tx_buffer[length-i-1] = data[i];
-        }
-        i2c_tx_buffer_counter = length+1;
-        i2c_transmit();
-    //}
+    i2c_tx_buffer[length] = regAddr;
+    for(int i = 0;i<length;i++) {
+        i2c_tx_buffer[length-i-1] = data[i];
+    }
+    i2c_tx_buffer_counter = length+1;
+    i2c_transmit();
 }
 
 void i2c_read_reg(uint8_t reg) {
     i2c_tx_buffer[0] = reg;
 	i2c_tx_buffer_counter = 1;
-	//i2c_transmit_to_receive();
 	i2c_transmit();
 	i2c_receive();
 }
@@ -179,11 +121,6 @@ void i2c_read_reg(uint8_t reg) {
  * @param data Buffer to store read data in
  */
 void i2c_read_bytes(uint8_t regAddr, uint8_t length, uint8_t *data) {
-  /*  for (uint8_t k = 0; k < length; k++) {
-        i2c_read_reg(regAddr);
-        data[k] = i2c_rx_buffer[0];
-    }*/
-    // Need to do a multireceive...
     if(length < 1) {
         return;
     }
@@ -192,7 +129,6 @@ void i2c_read_bytes(uint8_t regAddr, uint8_t length, uint8_t *data) {
     i2c_transmit();
     i2c_multireceive(length);
      for (uint8_t k = 0; k < length; k++) {
-        //i2c_read_reg(regAddr);
         data[k] = i2c_rx_buffer[k];
     }
 }
@@ -217,7 +153,6 @@ void i2c_read_bits(uint8_t regAddr, uint8_t bitStart, uint8_t length) {
         b >>= (bitStart - length + 1);
     }
     i2c_rx_buffer[0] = b;
-//    if ((count = i2c_read_reg(regAddr)) != 0) {
 }
 
 /** Write multiple words to a 16-bit device register.
@@ -225,7 +160,7 @@ void i2c_read_bits(uint8_t regAddr, uint8_t bitStart, uint8_t length) {
  * @param length Number of words to write
  * @param data Buffer to copy new data from
  * @return Status of operation (true = success)
- */ //0x13,1, (0)
+ */
 bool i2c_write_words(uint8_t regAddr, uint8_t length, uint16_t* data) {
     i2c_tx_buffer_counter = 1;
     i2c_tx_buffer[0] = regAddr;

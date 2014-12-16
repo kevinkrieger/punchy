@@ -34,7 +34,6 @@ void hc05_on();
 void hc05_setspeed(uint32_t speed);
 
 static inline void sendAck() {
-//	TXData = "A";
 	hc05_transmit("A",1);
 }
 
