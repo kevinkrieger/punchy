@@ -12,7 +12,7 @@
 
 /* Memory allocated in other places:
 
-mpu6050.h:
+mpu6050.h: 128+32+16+ some others ~= 200 bytes
 
 uint16_t dmpPacketSize;
 uint8_t mpu6050_buffer[16];
@@ -29,13 +29,13 @@ int16_t gz;
 int16_t temperature;
 
 
-hc05.h:
+hc05.h: ~32 bytes
 
 uint8_t TXData;
 uint8_t hc05_buffer[32];
 
 
-i2c.h:
+i2c.h: ~64 bytes
 
 uint8_t tx_to_rc;
 uint8_t i2c_rx_buffer[32];
@@ -43,6 +43,10 @@ uint8_t i2c_rx_buffer_pointer;
 uint8_t i2c_rx_buffer_length;
 uint8_t i2c_tx_buffer[32];
 uint8_t i2c_tx_buffer_counter;
+
+main.c has ~30 bytes
+
+Total: ~= 130+200 = 330 bytes
 
 */
 volatile uint8_t data_received;
